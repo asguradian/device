@@ -23,7 +23,11 @@ import base64
 import cv2
 import time
 import jsonpickle
+from  multiprocessing import Queue
+import _thread
 from Data import Stream
+from ReteriveImageUtility import fetchImage
+QUEUE=Queue()
 def create_jwt(project_id, private_key_file, algorithm):
     """Create a JWT (https://jwt.io) to establish an MQTT connection."""
     token = {
@@ -190,43 +194,31 @@ def main():
     client.on_disconnect = device.on_disconnect
     client.on_subscribe = device.on_subscribe
    # client.on_message = device.on_message
-
-    client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
-
-    client.loop_start()
-
+    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home",args.device_id))
+    while(1):
+     try: 
+      print("trying to connect")
+      client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
+      client.loop_start()
     # This is the topic that the device will publish telemetry events
     # (temperature data) to.
-    mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
-
+      mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
     # This is the topic that the device will receive configuration updates on.
-    mqtt_config_topic = '/devices/{}/config'.format(args.device_id)
-
+   # mqtt_config_topic = '/devices/{}/config'.format(args.device_id)
     # Wait up to 5 seconds for the device to connect.
-    device.wait_for_connection(5)
+      device.wait_for_connection(5)
 
     # Subscribe to the config topic.
-    client.subscribe(mqtt_config_topic, qos=1)
-
-    # Update and publish temperature readings at a rate of one per second.
-    for _ in range(args.num_messages):
-        # In an actual device, this would read the device's sensors. Here,
-        # you update the temperature based on whether the fan is on.
-        device.update_sensor_data()
-
-        # Report the device's temperature to the server by serializing it
-        # as a JSON string.
-        img=cv2.imread('1.png')
-        retval, buffer = cv2.imencode('.png', img)
-        encodedImg=base64.b64encode(buffer)
-        stream=Stream(encodedImg, datetime.datetime.now(),args.device_id) # create object to sent to the iot core
+   # client.subscribe(mqtt_config_topic, qos=1)
+      while(1):
+        stream=QUEUE.get(True);
         payload= jsonpickle.encode(stream)
-        client.publish(mqtt_telemetry_topic, payload, qos=1)
-        # Send events every second.
+        print("Sending message to the cloud")
+    #    client.publish(mqtt_telemetry_topic, payload, qos=1)
         time.sleep(1)
-
-    client.disconnect()
-    client.loop_stop()
+     except:
+      client.disconnect()
+      client.loop_stop()
     print('Finished loop successfully. Goodbye!')
 if __name__ == '__main__':
     main()
