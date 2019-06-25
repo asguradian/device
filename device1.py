@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import argparse
 import datetime
 import json
 import os
@@ -21,6 +22,7 @@ import paho.mqtt.client as mqtt
 import base64
 import cv2
 import time
+import jsonpickle
 from Data import Stream
 def create_jwt(project_id, private_key_file, algorithm):
     """Create a JWT (https://jwt.io) to establish an MQTT connection."""
@@ -214,13 +216,11 @@ def main():
 
         # Report the device's temperature to the server by serializing it
         # as a JSON string.
-        img=cv.imread('1.png')
+        img=cv2.imread('1.png')
         retval, buffer = cv2.imencode('.png', img)
         encodedImg=base64.b64encode(buffer)
-        stream=Steam(encodedImg str(time.time()),args.device_id) # create object to sent to the iot core
-
-        payload = json.dumps({'temperature': encodedImg})
-        print('Publishing payload', payload)
+        stream=Stream(encodedImg, time.time(),args.device_id) # create object to sent to the iot core
+        payload= jsonpickle.encode(stream)
         client.publish(mqtt_telemetry_topic, payload, qos=1)
         # Send events every second.
         time.sleep(1)
