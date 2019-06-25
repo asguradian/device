@@ -219,7 +219,7 @@ def main():
         img=cv2.imread('1.png')
         retval, buffer = cv2.imencode('.png', img)
         encodedImg=base64.b64encode(buffer)
-        stream=Stream(encodedImg, time.time(),args.device_id) # create object to sent to the iot core
+        stream=Stream(encodedImg, datetime.datetime.now(),args.device_id) # create object to sent to the iot core
         payload= jsonpickle.encode(stream)
         client.publish(mqtt_telemetry_topic, payload, qos=1)
         # Send events every second.
