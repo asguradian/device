@@ -212,6 +212,7 @@ def main():
    # client.subscribe(mqtt_config_topic, qos=1)
       while(1):
         stream=QUEUE.get(True);
+        print(stream.fileName)
         payload= jsonpickle.encode(stream)
         print("Sending message to the cloud")
     #    client.publish(mqtt_telemetry_topic, payload, qos=1)

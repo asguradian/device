@@ -4,6 +4,7 @@ import cv2
 import glob
 import datetime
 import time
+import os
 processedImage={} # stored the reterived  image
 #computer the hash of the image
 def dhash(image, hashSize=8):
@@ -22,17 +23,19 @@ def dhash(image, hashSize=8):
 def fetchImage(workerName, queue, imageDirectory,device_id):
  print("Image processed") 
  while(1):
-  images = [cv2.imread(file) for file in glob.glob(imageDirectory+"/*.png")]
-  for img in images:
-    try:
-     imageHash= str(dhash(img));
-     processedImage[imageHash] 
-    except KeyError as e:   
-     encodedImg=base64.b64encode(img)
-     stream=encodeImage(encodedImg, datetime.datetime.now(),device_id,imageHash)
-     processedImage[imageHash]=1
-     queue.put(stream)
-    except cv2.error as e:
+  paths =  sorted(glob.glob(imageDirectory+"/*.png"))
+  images = [cv2.imread(file) for file in paths]
+  for path in paths:
+    if os.path.exists(path):
+     try:
+      processedImage[path] 
+     except KeyError as e:
+      image = cv2.imread(path)     
+      encodedImg=base64.b64encode(image)
+      stream=encodeImage(encodedImg, datetime.datetime.now(),device_id,path)
+      processedImage[path]=1
+      queue.put(stream)
+     except cv2.error as e:
       print("image is corrupted, will be attempted next time")
    
  
