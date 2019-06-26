@@ -88,10 +88,9 @@ class Device(object):
         self.connected = False
 
     def on_publish(self, unused_client, unused_userdata, unused_mid):
-        """Callback when the device receives a PUBACK from the MQTT bridge."""
-        imagePath= backlog.get()
-        removeFile(imagePath)
-        print('Published image acknowledged acked.')
+       imagePath=backlog.get()
+       removeFile(imagePath)
+       print('Published image acknowledged acked.')
 
     def on_subscribe(self, unused_client, unused_userdata, unused_mid,
                      granted_qos):
@@ -201,26 +200,24 @@ def main():
     _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home/anil/pics",args.device_id))
     while(1):
      try: 
-#      print("trying to connect")
-#      client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
- #     client.loop_start()
+      print("trying to connect")
+      client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
+      client.loop_start()
     # This is the topic that the device will publish telemetry events
     # (temperature data) to.
-  #    mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
+      mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
     # This is the topic that the device will receive configuration updates on.
-   # mqtt_config_topic = '/devices/{}/config'.format(args.device_id)
+      mqtt_config_topic = '/devices/{}/config'.format(args.device_id)
     # Wait up to 5 seconds for the device to connect.
    #   device.wait_for_connection(5)
 
     # Subscribe to the config topic.
-   # client.subscribe(mqtt_config_topic, qos=1)
+      client.subscribe(mqtt_config_topic, qos=1)
       while(1):
         stream=QUEUE.get(True);
-        print(stream.fileName)
         payload= jsonpickle.encode(stream)
-        print("Sending message to the cloud")
-    #   client.publish(mqtt_telemetry_topic, payload, qos=1)
-        backlog.put(stream.fileName)
+        client.publish(mqtt_telemetry_topic, payload, qos=1)
+        backlog.put(stream.fileName) # put the file name for removal once acknowledged
         time.sleep(1)
      except:
       client.disconnect()
