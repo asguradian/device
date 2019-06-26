@@ -26,8 +26,10 @@ import jsonpickle
 from  multiprocessing import Queue
 import _thread
 from Data import Stream
+from FileUtils import *
 from ReteriveImageUtility import fetchImage
 QUEUE=Queue()
+backlog= Queue()
 def create_jwt(project_id, private_key_file, algorithm):
     """Create a JWT (https://jwt.io) to establish an MQTT connection."""
     token = {
@@ -87,6 +89,8 @@ class Device(object):
 
     def on_publish(self, unused_client, unused_userdata, unused_mid):
         """Callback when the device receives a PUBACK from the MQTT bridge."""
+        imagePath= backlog.get()
+        removeFile(imagePath)
         print('Published image acknowledged acked.')
 
     def on_subscribe(self, unused_client, unused_userdata, unused_mid,
@@ -215,7 +219,8 @@ def main():
         print(stream.fileName)
         payload= jsonpickle.encode(stream)
         print("Sending message to the cloud")
-    #    client.publish(mqtt_telemetry_topic, payload, qos=1)
+    #   client.publish(mqtt_telemetry_topic, payload, qos=1)
+        backlog.put(stream.fileName)
         time.sleep(1)
      except:
       client.disconnect()
