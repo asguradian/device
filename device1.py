@@ -184,7 +184,6 @@ def main():
     client.on_disconnect = device.on_disconnect
     client.on_subscribe = device.on_subscribe
    # client.on_message = device.on_messagei
-    print(args.dir)
     _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, args.dir,args.device_id)) # start the worker thread to read the images
     while(1): # infinite loop  to check for network connectivity and if network is reachable  connects to the cloud
      try: 
