@@ -1,15 +1,5 @@
-# Copyright 2017 Google Inc. All rights reserved.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Main driver program that conects to the IoT core cloud and uploads the image. Once t he image is acknowledge, it is removed 
+# from the local storage
 import argparse
 import datetime
 import json
@@ -28,8 +18,8 @@ import _thread
 from Data import Stream
 from FileUtils import *
 from ReteriveImageUtility import fetchImage
-QUEUE=Queue()
-backlog= Queue()
+QUEUE=Queue() # queue that keeps all the image read by the worker image reader thread
+backlog= Queue() # queue that holds file name of the file sent to the IoT core platform
 def create_jwt(project_id, private_key_file, algorithm):
     """Create a JWT (https://jwt.io) to establish an MQTT connection."""
     token = {
@@ -86,7 +76,9 @@ class Device(object):
         """Callback for when a device disconnects."""
         print('Disconnected:', error_str(rc))
         self.connected = False
-
+   # once the image is recived by the cloud, it is acknowledge by calling this method.
+   # On each ackknowledge, a image filename is peek from the backlog queue and corresponding file is removed
+   # from  the local storage
     def on_publish(self, unused_client, unused_userdata, unused_mid):
        imagePath=backlog.get()
        removeFile(imagePath)
@@ -197,8 +189,8 @@ def main():
     client.on_disconnect = device.on_disconnect
     client.on_subscribe = device.on_subscribe
    # client.on_message = device.on_message
-    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home/anil/pics",args.device_id))
-    while(1):
+    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home/anil/pics",args.device_id)) # start the worker thread to read the images
+    while(1): # infinite loop  to check for network connectivity and if network is reachable  connects to the cloud
      try: 
       print("trying to connect")
       client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
@@ -214,13 +206,13 @@ def main():
     # Subscribe to the config topic.
       client.subscribe(mqtt_config_topic, qos=1)
       while(1):
-        stream=QUEUE.get(True);
-        payload= jsonpickle.encode(stream)
-        client.publish(mqtt_telemetry_topic, payload, qos=1)
+        stream=QUEUE.get(True); # read the image from the queue(from the one that hold the lastest image)
+        payload= jsonpickle.encode(stream) # json encode the image
+        client.publish(mqtt_telemetry_topic, payload, qos=1) # publish it to the cloud
         backlog.put(stream.fileName) # put the file name for removal once acknowledged
-        time.sleep(1)
-     except:
-      client.disconnect()
+        time.sleep(1) # sleep for a second before reading the next image
+     except: # if connection fails
+      client.disconnect() 
       client.loop_stop()
     print('Finished loop successfully. Goodbye!')
 if __name__ == '__main__':
