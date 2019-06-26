@@ -20,10 +20,6 @@ This file is a driver program that can communicate with the IoT core. This file 
 The worker thread is not affected by the network connectivity issue. It just read the file and put it on to the queue. The program automatically try to re-connect to the cloud if the connection is broken and again reads the image from the queue. Non of the images are lost due to connection lost issue as the images from the queue is only picked if the connection is successfully established. Run this file using following command:
 
 Please make sure you have read & write permission on the directory you want  read and write the file.
-If you want to use my platform use following command( Not sure if it works for now )
-```sh
-$ python device1.py --dir=ABS PATH TO THE DIRECTORY( without / at last)
-``` 
 
 If you have you own platform please provide necessary details here
 
