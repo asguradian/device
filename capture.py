@@ -2,6 +2,11 @@ import time
 import cv2
 import argparse
 #video = cv2.VideoCapture(0);
+
+
+# This script captures the image at the defined frame rate and resize the image to
+# to the defined dimension and store it to the specified directory. The files are stored in a circular 
+# manner such that at every point of time there is a fixed number of image on the directory. It deletes the old images to make roon for the new images.
 counter=0;
 
 def parse_command_line_args():
@@ -30,15 +35,15 @@ h=args.h
 w=args.w
 o= args.o
 timeSleep= 60/f
-while(1):
- #ret, frame = cap.read()
- img= cv2.imread("1.png")
+cap = cv2.VideoCapture('12.mp4')
+while(cap.isOpened()):
+ ret, img = cap.read()
  x = float(w/img.shape[1])
- print(x)
  y = float(h/img.shape[0])
  resized= cv2.resize(img, (0, 0), fx=x, fy=y)
  if(counter>f):
   counter=counter % f;
- cv2.imwrite(o+"/img_"+str(counter % f)+".jpg",resized)
- counter+=1 
+ cv2.imwrite(o+"/img_"+str(counter % f)+".png",resized)
+ counter+=1
+ time.sleep(timeSleep) 
 
