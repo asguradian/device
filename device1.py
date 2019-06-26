@@ -122,21 +122,19 @@ def parse_command_line_args():
         description='Example Google Cloud IoT MQTT device connection code.')
     parser.add_argument(
         '--project_id',
-        default=os.environ.get("GOOGLE_CLOUD_PROJECT"),
-        required=True,
+        default='perch-244901',
         help='GCP cloud project name.')
     parser.add_argument(
-        '--registry_id', required=True, help='Cloud IoT registry id')
+        '--registry_id', default='deviceregister', help='Cloud IoT registry id')
     parser.add_argument(
-        '--device_id',
-        required=True,
+        '--device_id',default='iot',
         help='Cloud IoT device id')
     parser.add_argument(
-        '--private_key_file', required=True, help='Path to private key file.')
+        '--private_key_file', default= "rsa_private.pem", help='Path to private key')
     parser.add_argument(
         '--algorithm',
         choices=('RS256', 'ES256'),
-        required=True,
+        default='RS256',
         help='Which encryption algorithm to use to generate the JWT.')
     parser.add_argument(
         '--cloud_region', default='us-central1', help='GCP cloud region')
@@ -144,11 +142,6 @@ def parse_command_line_args():
         '--ca_certs',
         default='roots.pem',
         help='CA root certificate. Get from https://pki.google.com/roots.pem')
-    parser.add_argument(
-        '--num_messages',
-        type=int,
-        default=100,
-        help='Number of messages to publish.')
     parser.add_argument(
         '--mqtt_bridge_hostname',
         default='mqtt.googleapis.com',
@@ -158,8 +151,10 @@ def parse_command_line_args():
     parser.add_argument(
         '--message_type', choices=('event', 'state'),
         default='event',
-        help=('Indicates whether the message to be published is a '
-              'telemetry event or a device state message.'))
+        help='Indicates whether the message to be published is a '
+              'telemetry event or a device state message.')
+    parser.add_argument(
+        '--dir',required=True, help='Disk directory from where the images has to be read. Please do not put / at the end')
 
     return parser.parse_args()
 
@@ -188,8 +183,9 @@ def main():
     client.on_publish = device.on_publish
     client.on_disconnect = device.on_disconnect
     client.on_subscribe = device.on_subscribe
-   # client.on_message = device.on_message
-    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home/anil/pics",args.device_id)) # start the worker thread to read the images
+   # client.on_message = device.on_messagei
+    print(args.dir)
+    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, args.dir,args.device_id)) # start the worker thread to read the images
     while(1): # infinite loop  to check for network connectivity and if network is reachable  connects to the cloud
      try: 
       print("trying to connect")
@@ -206,6 +202,7 @@ def main():
     # Subscribe to the config topic.
       client.subscribe(mqtt_config_topic, qos=1)
       while(1):
+        print("processing image to upload")
         stream=QUEUE.get(True); # read the image from the queue(from the one that hold the lastest image)
         payload= jsonpickle.encode(stream) # json encode the image
         client.publish(mqtt_telemetry_topic, payload, qos=1) # publish it to the cloud
