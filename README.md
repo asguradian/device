@@ -9,6 +9,8 @@ pip from conda(to install JsonPickle)
 ```
 Please use Anaconda python  and setup pip command to install dependency to anaconda repo.
 
+You have to separately run this two file; the order does not matter.
+
 # Capture.py
  This file reads from a video file(i simulated a video file to be a camera(video also present on the repo)) and store the image on a disk path. It  will remove the old image to make the  room for the new images. It insures that at every point of there is a fixed number of images on a directory. It accepts 4 parameter which are will documented on the script itself. to run this file issue the command:
  ```sh
