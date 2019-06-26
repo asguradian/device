@@ -3,7 +3,7 @@ import cv2
 import argparse
 from multiprocessing import Queue
 #video = cv2.VideoCapture(0);
-import os
+from FileUtils import *
 queue=Queue() #holds previously used fileName 
 # # This script captures the image at the defined frame rate and resize the image to
 # to the defined dimension and store it to the specified directory. The files are stored in a circular 
@@ -44,8 +44,7 @@ while(cap.isOpened()):
  resized= cv2.resize(img, (0, 0), fx=x, fy=y)
  if(counter>f-1):
    oldestImage=queue.get(block=False);
-   if os.path.exists(oldestImage):
-     os.remove(oldestImage)
+   removeFile(oldestImage)
  newImage= o+"/"+str(counter)+".png";  
  queue.put(newImage)
  cv2.imwrite(newImage,resized)
