@@ -194,19 +194,19 @@ def main():
     client.on_disconnect = device.on_disconnect
     client.on_subscribe = device.on_subscribe
    # client.on_message = device.on_message
-    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home",args.device_id))
+    _thread.start_new_thread(fetchImage,("ImageReteriver", QUEUE, "/home/anil/pics",args.device_id))
     while(1):
      try: 
-      print("trying to connect")
-      client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
-      client.loop_start()
+#      print("trying to connect")
+#      client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
+ #     client.loop_start()
     # This is the topic that the device will publish telemetry events
     # (temperature data) to.
-      mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
+  #    mqtt_telemetry_topic = '/devices/{}/events'.format(args.device_id)
     # This is the topic that the device will receive configuration updates on.
    # mqtt_config_topic = '/devices/{}/config'.format(args.device_id)
     # Wait up to 5 seconds for the device to connect.
-      device.wait_for_connection(5)
+   #   device.wait_for_connection(5)
 
     # Subscribe to the config topic.
    # client.subscribe(mqtt_config_topic, qos=1)
